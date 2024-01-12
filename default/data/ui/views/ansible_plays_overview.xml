@@ -140,12 +140,11 @@
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">row</option>
         <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
         <drilldown>
-          <link target="_self">/app/ansible_tower/ansible_job_detail?form.awx_job_id=$row.Job$</link>
+          <link target="_self">/app/ansible_awx/ansible_job_detail?form.awx_job_id=$row.Job$</link>
         </drilldown>
       </table>
     </panel>

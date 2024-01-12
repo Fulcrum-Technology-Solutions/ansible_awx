@@ -162,7 +162,7 @@
   </row>
   <row>
     <panel>
-      <title>Ansible Play Task - Click above to filter and below for task details</title>
+      <title>Ansible Play Task - Click for details</title>
       <table>
         <search>
           <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$" host_name!="" role!="" 
