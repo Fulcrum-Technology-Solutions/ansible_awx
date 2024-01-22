@@ -1,0 +1,207 @@
+<form version="1.1">
+  <init>
+    <set token="ansible_status">*</set>
+  </init>
+  <label>Ansible Job Detail</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="timerange">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="awx_job_id" searchWhenChanged="true">
+      <label>Select Job ID</label>
+      <fieldForLabel>job_id</fieldForLabel>
+      <fieldForValue>job_id</fieldForValue>
+      <search>
+        <query>index=awx logger_name="awx.analytics.activity_stream" earliest=$timerange.earliest$ latest=$timerange.latest$
+| stats count by summary_fields.job{}.id summary_fields.job{}.name guid
+| rename summary_fields.job{}.id AS job_id summary_fields.job{}.name AS job_name
+| sort - job_id</query>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>All Tasks</title>
+      <single>
+        <search>
+          <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$"
+| stats values(event) AS events by "event_data.task"
+| eval status = CASE(MATCH(events, "runner_on_failed"), "failed", MATCH(events, "playbook_on_task_skipped"), "skipped", 1==1, "success")
+| stats count</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <set token="ansible_status">*</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <title>Successful Tasks</title>
+      <single>
+        <search>
+          <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$"
+| stats values(event) AS events by "event_data.task"
+| eval status = CASE(MATCH(events, "runner_on_failed"), "failed", MATCH(events, "playbook_on_task_skipped"), "skipped", 1==1, "success")
+| where status="success"
+| stats count</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">all</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[999999999999]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">1</option>
+        <option name="useThousandSeparators">1</option>
+        <drilldown>
+          <set token="ansible_status">OK</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <title>Skipped Tasks</title>
+      <single>
+        <search>
+          <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$"
+| stats values(event) AS events by "event_data.task"
+| eval status = CASE(MATCH(events, "runner_on_failed"), "failed", MATCH(events, "playbook_on_task_skipped"), "skipped", 1==1, "success")
+| where status="skipped"
+| stats count</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">all</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[9999999999999]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">1</option>
+        <option name="useThousandSeparators">1</option>
+        <drilldown>
+          <set token="ansible_status">SKIPPED</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <title>Failed Tasks</title>
+      <single>
+        <search>
+          <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$"
+| stats values(event) AS events by "event_data.task"
+| eval status = CASE(MATCH(events, "runner_on_failed"), "failed", MATCH(events, "playbook_on_task_skipped"), "skipped", 1==1, "success")
+| search status="failed"
+| stats count</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">all</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">1</option>
+        <option name="useThousandSeparators">1</option>
+        <drilldown>
+          <set token="ansible_status">FAILED</set>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Ansible Play Task - Click for details</title>
+      <table>
+        <search>
+          <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$" host_name!="" role!="" 
+| stats latest(_time) AS _time latest(failed) AS failed by role event_data.task host_name 
+| table _time role event_data.task host_name failed
+| rename event_data.task AS task_name
+| sort - _time</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <set token="ansible_task_name">$row.task_name$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <event>
+        <title>Ansible Task Detail</title>
+        <search>
+          <query>`ansible_index` logger_name="awx.analytics.job_events" role!="" job="$awx_job_id$" event_data.task="$ansible_task_name$" host_name!="" role!=""</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="list.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </event>
+    </panel>
+  </row>
+</form>

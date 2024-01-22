@@ -1,0 +1,4 @@
+<nav search_view="search">
+	<view name="ansible_plays_overview" default='true' />
+	<view name="ansible_job_detail" />
+</nav>
